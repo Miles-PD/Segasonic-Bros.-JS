@@ -1,9 +1,19 @@
 import SpriteSheet from './SpriteSheet.js';
 import {loadImage, loadScreen} from './loaders.js';
 
+function drawBoardGfx(boardGfx, context, graphic) {
+    boardGfx.drawpos.forEach(([x, y]) => {
+        loadImage(`/gfx/${graphic}.png`)
+        .then(img => {
+            context.drawImage(img, x, y);
+        });
+
+    })
+}
 
 const canvas = document.getElementById('mainscreen');
 const context = canvas.getContext('2d');
+
 
 
 //CANVAS CONSTANTS
@@ -22,10 +32,20 @@ sonicYellow.src = 'sonics/sonicyellow.png';
 
 window.onload = function (e)
 {
-    loadImage('/gfx/grid.png')
-    .then(img => {
-        context.drawImage(img, 0, 0);
-    });
+    loadScreen('board')
+    .then(screen => {
+        screen.boardGfx.forEach(board => {
+            drawBoardGfx(board, context, board.graphic)
+        })
+    })
+   // loadImage('/gfx/grid.png')
+   // .then(img => {
+   //     context.drawImage(img, 8, 24);
+   // });
+   // loadImage('/gfx/border.png')
+   // .then(img => {
+    //    context.drawImage(img, 0, 2);
+    //});
     /// TEST    
     loadImage('gfx/sonics.png')
     .then(image => {
