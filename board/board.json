@@ -1,0 +1,20 @@
+{
+    "boardGfx": [
+        {
+            "graphic": "border",
+            "drawpos": [
+               [
+              0, 2
+              ]
+        ]
+        },
+        {
+            "graphic": "grid",
+            "drawpos": [
+                [
+                8, 24
+                ]
+            ]
+            }
+    ]
+}
