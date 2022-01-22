@@ -1,20 +1,31 @@
-import SpriteSheet from './SpriteSheet.js';
-import {loadImage, loadScreen} from './loaders.js';
+import Compositor from './compositor.js';
+import {loadScreen} from './loaders.js';
+import {loadSonics} from './sprites.js';
+import {createLayer} from './layers.js';
 
-function drawBoardGfx(boardGfx, context, graphic) {
-    boardGfx.drawpos.forEach(([x, y]) => {
-        loadImage(`/gfx/${graphic}.png`)
-        .then(img => {
-            context.drawImage(img, x, y);
-        });
 
+
+function loadAndDrawScreen() {
+    loadScreen('board')
+    .then(screen => {
+        screen.boardGfx.forEach(board => {
+            drawBoardGfx(board, context, board.graphic)
+        })
     })
 }
+
+
 
 const canvas = document.getElementById('mainscreen');
 const context = canvas.getContext('2d');
 
 
+
+function createSpriteLayer(sprite, pos) {
+    return function drawSpriteLayer(context) {
+        sprite.draw('sonicBlue', context, pos.currentXPos, pos.currentYPos);
+    };
+}
 
 //CANVAS CONSTANTS
 //const grid_bg = new Image();
@@ -30,14 +41,35 @@ const sonicYellow = new Image();
 sonicYellow.src = 'sonics/sonicyellow.png';
 
 
-window.onload = function (e)
-{
-    loadScreen('board')
-    .then(screen => {
-        screen.boardGfx.forEach(board => {
-            drawBoardGfx(board, context, board.graphic)
-        })
-    })
+// Main loop
+window.onload = function (e) {
+
+    Promise.all([
+        loadSonics(),
+        loadScreen('board'),
+    ])
+    .then(([sonicSprites, screen]) => {
+
+        const compositor = new Compositor();
+        const midLayer = createLayer(screen.boardGfx, screen.boardGfx.graphic);
+        compositor.layers.push(midLayer);
+
+        const sonicSpritesLayer = createSpriteLayer(sonicSprites, sonicPos);
+        compositor.layers.push(sonicSpritesLayer);
+
+
+
+
+    function update() {
+        compositor.draw(context);
+        sonicPos.currentXPos+=2;
+        sonicPos.currentYPos+=2;
+        requestAnimationFrame(update);
+    }
+    update();
+    });
+
+
    // loadImage('/gfx/grid.png')
    // .then(img => {
    //     context.drawImage(img, 8, 24);
@@ -47,13 +79,7 @@ window.onload = function (e)
     //    context.drawImage(img, 0, 2);
     //});
     /// TEST    
-    loadImage('gfx/sonics.png')
-    .then(image => {
-    const sprites = new SpriteSheet(image, 16, 24);
-    sprites.define('sonicBlue', 0, 0);
-    sprites.draw('sonicBlue', context, 12, 12);
-})
-    update();
+
     
 }
 
@@ -71,10 +97,13 @@ const sonicColors = [
     sonicYellow,
 ];
 
-let currentXPos = 0;
-let currentYPos = 0;
-let offset_x = 0;
-let offset_y = 0;
+const sonicPos = {
+    currentXPos: 0,
+    currentYPos: 0,
+    offset_x: 0,
+    offset_y: 0,
+};
+
 
 
 //PIECES
@@ -144,7 +173,4 @@ function drawPiece(block, offset) {
     })
 }
 
-function update() {
-    draw();
-    getAniFrame(update);
-}
+
